@@ -1,8 +1,12 @@
-function renderIsland(elevation, moisture) {
+function renderIsland(elevation, moisture, hasMountains) {
+  // Default to true if not provided
+  if (hasMountains === undefined) hasMountains = true;
+
   const canvas = document.getElementById("mapCanvas");
   const ctx = canvas.getContext("2d");
   var widthMap = canvas.width;
   var heightMap = canvas.height;
+
   for (var i = 0; i < elevation.length; i++) {
     var e_raw = parseFloat(elevation[i]);
     var m = parseFloat(moisture[i]);
@@ -13,32 +17,36 @@ function renderIsland(elevation, moisture) {
     var dx = screenX - widthMap / 2;
     var dy = screenY - heightMap / 2;
     var dist = Math.sqrt(dx * dx + dy * dy);
-
-    // 0.5 = tiny island, 0.65 = medium, 0.8 = huge island
-    var maxRadius = widthMap * 1.1;
+    var maxRadius = widthMap * 0.72;
 
     var mask = 1 - dist / maxRadius;
     mask = Math.max(0, mask);
-
-    // 1.0 = linear, 1.5 = steeper cliffs, 0.8 = very gradual
     mask = Math.pow(mask, 1.2);
-
-    // Apply mask
     e_raw = e_raw * mask;
 
-    // GUARANTEE LAND AT CENTER
-    // Creates a guaranteed elevation that fades from center to edge
-    var continentalBoost = Math.max(0, 1 - dist / (widthMap * 0.38)) * 0.45;
-    e_raw = e_raw + continentalBoost;
-    if (e_raw > 1.0) {
-      e_raw = 1.0;
+    // ============================================================
+    // MOUNTAIN TOGGLE
+    // ============================================================
+    if (hasMountains) {
+      var continentalBoost = Math.max(0, 1 - dist / (widthMap * 0.09)) * 0.45;
+      e_raw = e_raw + continentalBoost;
+      if (e_raw > 1.0) e_raw = 1.0;
     }
 
-    // --- LATITUDE TEMPERATURE ---
-    var normalizedY = screenY / heightMap;
-    var latitude = Math.abs(normalizedY - 0.5) * 2;
-    latitude = Math.pow(latitude, 3);
-    var temperature = 1.0 - latitude - e_raw * 0.6;
+    // --- EDGE WATER GUARANTEE ---
+    var edgeMargin = widthMap * 0.06;
+    var edgeFadeX = 1.0;
+    var edgeFadeY = 1.0;
+
+    if (screenX < edgeMargin) edgeFadeX = screenX / edgeMargin;
+    if (screenX > widthMap - edgeMargin)
+      edgeFadeX = (widthMap - screenX) / edgeMargin;
+    if (screenY < edgeMargin) edgeFadeY = screenY / edgeMargin;
+    if (screenY > heightMap - edgeMargin)
+      edgeFadeY = (heightMap - screenY) / edgeMargin;
+
+    var edgeFade = Math.min(edgeFadeX, edgeFadeY);
+    e_raw = e_raw * edgeFade;
 
     // --- ELEVATION POWER CURVE ---
     var e = e_raw;
@@ -49,6 +57,10 @@ function renderIsland(elevation, moisture) {
     } else {
       e = 0.4 + (e - 0.42) * 1.6;
     }
+
+    // --- TEMPERATURE (elevation-only, no poles) ---
+    var elevationCooling = Math.pow(e, 2.2) * 1.4;
+    var temperature = 1.0 - elevationCooling;
 
     // --- BIOMES ---
     var r, g, b;
@@ -68,7 +80,7 @@ function renderIsland(elevation, moisture) {
     } else if (temperature < -0.2) {
       r = 230;
       g = 240;
-      b = 250; // Ice cap
+      b = 250; // Ice cap (peaks only)
     } else if (temperature < 0.15) {
       r = 180;
       g = 195;
@@ -100,7 +112,9 @@ function renderIsland(elevation, moisture) {
   }
 }
 
-function generateValidIsland() {
+function generateValidIsland(hasMountains) {
+  if (hasMountains === undefined) hasMountains = true;
+
   const canvas = document.getElementById("mapCanvas");
   const ctx = canvas.getContext("2d");
   var widthMap = canvas.width;
@@ -135,7 +149,8 @@ function generateValidIsland() {
 
         // After mask, is this above beach threshold?
         // Your power curve makes land at e_raw >= 0.42
-        if (e_raw * mask >= 0.42) landCount++;
+        var threshold = hasMountains ? 0.42 : 0.38;
+        if (e_raw * mask >= threshold) landCount++;
         checkSize++;
       }
     }
