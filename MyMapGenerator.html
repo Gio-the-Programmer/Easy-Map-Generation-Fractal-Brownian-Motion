@@ -7,7 +7,8 @@
     <link rel="stylesheet" href="MyMapGenerator.css" />
   </head>
   <body>
-    <div><canvas id="mapCanvas" width="720" height="720"></canvas></div>
+    <div id="executionTime" style="color: lime;"></div>
+    <div><canvas id="mapCanvas" width="810" height="630"></canvas></div>
     </canvas>
   </body>
   <!-- 1. Load the noise algorithm first (saves it to global memory) -->
@@ -15,6 +16,7 @@
 <script src="./JS/genMap/algoFractalBrownian.js"></script>
 <script src="./JS/genMapStyle/codeEarthBiome.js"></script>
 <script src="./JS/genMapStyle/codeIsland.js"></script>
+<script src="./JS/genMapStyle/codeRivers.js"></script>
 <!-- 2. Load your main map rendering logic second -->
 <script src="MyMapGenerator.js"></script>
 

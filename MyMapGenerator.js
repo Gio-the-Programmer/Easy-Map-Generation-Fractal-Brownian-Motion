@@ -1,43 +1,11 @@
-// PERLIN NOISE
+const startTime = performance.now() / 1000;
 
-// var pixelValues = PerlinNoise(true);
-// // alert(pixelValues);
+var hasmountains = true; // ← 1. declare FIRST
+var maps = generateValidIsland(hasmountains); // ← 2. pass it in
+renderIsland(maps.elevation, maps.moisture, hasmountains);
+renderRivers(maps.elevation, hasmountains);
 
-// const canvas = document.getElementById("mapCanvas");
-// const ctx = canvas.getContext("2d");
-// var widthMap = canvas.width;
-
-// for (var i = 0; i < pixelValues.length; i++) {
-//   var intensity = Math.abs(pixelValues[i]);
-//   ctx.fillStyle = `rgba(255, 255, 255, ${intensity})`;
-//   ctx.fillRect(i % widthMap, Math.floor(i / widthMap), 1, 1);
-// }
-
-// BROWNIAN MOTION
-
-// var pixelValues = BrownianMotion();
-// alert(pixelValues);
-
-// const canvas = document.getElementById("mapCanvas");
-// const ctx = canvas.getContext("2d");
-// var widthMap = canvas.width;
-
-// for (var i = 0; i < pixelValues.length; i++) {
-//   var intensity = Math.abs(pixelValues[i]);
-//   ctx.fillStyle = `rgba(255, 255, 255, ${intensity})`;
-//   ctx.fillRect(i % widthMap, Math.floor(i / widthMap), 1, 1);
-// }
-
-// FRACTAL BROWNIAN MOTION
-
-// var pixelValues = FractalBrownianMotion();
-// alert(pixelValues[1]);
-
-// ============================================================
-// GENERATE TWO NOISE FIELDS
-// ============================================================
-// var elevation = FractalBrownianMotion(); // Big continents
-// var moisture = FractalBrownianMotion(6, 6, 0.5, 2.0, 1000); // Rainfall pattern
-
-var maps = generateValidIsland();
-renderIsland(maps.elevation, maps.moisture);
+const endTime = performance.now() / 1000;
+const executionTime = endTime - startTime;
+document.getElementById("executionTime").textContent =
+  `Execution time: ${executionTime.toFixed(2)} seconds`;
